@@ -2,12 +2,11 @@
 include("shared.php");
 include("dbconn.inc.php");
 $conn = dbConnect();
-echo "$component_HTMLHeader";
-?>
+echo "$component_HTMLHeader";?>
 
 <script>
   function init(){
-    document.getElementById('contact-input-Email').onchange = process;
+    document.getElementById('sponsor-input-Email').onchange = process;
   }
 
   function process(evt){
@@ -16,7 +15,7 @@ echo "$component_HTMLHeader";
     var err = 0;
 
     // Store the input from the email field in a variable
-    var emailText = document.getElementById('contact-input-Email').value;
+    var emailText = document.getElementById('sponsor-input-Email').value;
 
     //Create a regular expression for validating the email
     var emailPattern = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i;
@@ -93,17 +92,17 @@ echo "$component_HTMLHeader";
   //This code can insert stuff into the database. It grabs values from the contact form, validates that nothing is missing, and sends it to the database.
 
   // Process user input if they submit the form
-  if (isset($_POST['Submit'])) {
+  if (isset($_POST['SubmitSponsorForm'])) {
     //echo "debug: the form was successfully submitted<br>";
   	// set up an array of the required user input
 
-  	$required = array("contactFirstName", "contactLastName", "contactEmail"); // note that, in this array, the spelling of each item should match the form field names
+  	$required = array("sponsorFirstName", "sponsorLastName", "sponsorEmail"); // note that, in this array, the spelling of each item should match the form field names
 
   	// set up the expected array (all fields in the form, whether required or not)
-  	$expected = array("contactFirstName", "contactLastName", "contactEmail", "contactPhoneNumber", "contactMessage"); // again, the spelling of each item should match the form field names
+  	$expected = array("sponsorFirstName", "sponsorLastName", "sponsorEmail", "sponsorPhoneNumber", "sponsorMessage"); // again, the spelling of each item should match the form field names
 
     // set up a label array, use the field name as the key and label as the value
-    $label = array ("contactFirstName"=>'First name', "contactLastName"=>"Last name", "contactEmail"=>'Email address', "contactPhoneNumber"=>'Phone number',"contactMessage"=>'Message');
+    $label = array ("sponsorFirstName"=>'First name', "sponsorLastName"=>"Last name", "sponsorEmail"=>'Email address', "sponsorPhoneNumber"=>'Phone number',"sponsorMessage"=>'Message');
 
     // set up an empty array where we'll push any required fields that weren't submitted
   	$missing = array();
@@ -144,13 +143,13 @@ echo "$component_HTMLHeader";
 
   		// compose a query: Insert a new record
 
-			$sql = "Insert Into `contactFormSubmissions` (contactFirstName, contactLastName, contactEmail, contactPhoneNumber, contactMessage) values (?, ?, ?, ?, ?)";
+			$sql = "Insert Into `sponsorFormSubmissions` (sponsorID, sponsorFirstName, sponsorLastName, sponsorEmail, sponsorPhoneNumber, sponsorMessage) values (?, ?, ?, ?, ?,?)";
 
   			if($stmt->prepare($sql)){
 
   				// Note: user input could be an array, the code to deal with array values should be added before the bind_param statment.
 
-  				$stmt->bind_param('sssss',$contactFirstName, $contactLastName, $contactEmail, $contactPhoneNumber, $contactMessage);
+  				$stmt->bind_param('isssss',$sponsorID,$sponsorFirstName, $sponsorLastName, $sponsorEmail, $sponsorPhoneNumber, $sponsorMessage);
   				$stmt_prepared = 1; // set up a variable to signal that the query statement is successfully prepared.
           //echo "debug: stmt prepared on line 70<br>";
   			}
@@ -162,10 +161,11 @@ echo "$component_HTMLHeader";
           //echo "debug: stmt executed on line 83<br>";
 
           //  the following code prints a confirmation message at the top of the contact page when the user successfully submits the form.
+
           $output = "
           <div class='col-lg-6 col-md-8 col-sm-12 bg-dark mx-auto my-5'>
-          <h3 class='display-4 mx-auto my-5 text-white'>Thanks for reaching out, ".$contactFirstName.".</h3>
-          <p class='lead text-white'>We'll reach out to you within 48 hours.</p>
+          <h3 class='display-4 mx-auto my-5 text-white'>Thank you for considering sponsorship, ".$sponsorFirstName.".</h3>
+          <p class='lead text-white'>We'll contact you within 48 hours.</p>
           <p class='lead text-white'>In the mean time, have you connected with us on <a class='gulfOrangeText' href='https://www.instagram.com/thegulf_tx'>social media</a>?</p>
           </div>
           ";
@@ -178,6 +178,7 @@ echo "$component_HTMLHeader";
   				//$stmt->execute() failed.
           //stackoverflow error printing code for debugging
           //printf("Error: %s.\n", $stmt->error);
+          // $output = "<p class='text-white'>Debug: the statement did not successfully execute. stmt->execute() failed.</p>";
           $output = "
           <div class='col-lg-6 col-md-8 col-sm-12 bg-dark mx-auto my-5'>
           <h3 class='display-4 mx-auto my-5 text-white'>We were unable to submit your information to our database.</h3>
@@ -188,6 +189,7 @@ echo "$component_HTMLHeader";
   			}
   		} else {
   			// statement is not successfully prepared (issues with the query).
+        // $output = "<p class='text-white'>Debug: the statement did not successfully prepare, so there were issues with the query.</p>";
         $output = "
         <div class='col-lg-6 col-md-8 col-sm-12 bg-dark mx-auto my-5'>
         <h3 class='display-4 mx-auto my-5 text-white'>We were unable to submit your information to our database.</h3>
@@ -198,15 +200,15 @@ echo "$component_HTMLHeader";
   		}
 
   	} else {
-      // $missing is not empty
-      $output = "<div class='col-lg-6 col-md-8 col-sm-12 bg-dark mx-auto my-5'>
+  		// $missing is not empty
+  		$output = "<div class='col-lg-6 col-md-8 col-sm-12 bg-dark mx-auto my-5'>
       <h3 class='display-4 mx-auto my-5 text-white'>Please fill out all required fields.</h3>
       <p class='lead text-white'>The following required fields are missing in your submission:</p>
       <br>\n<ul>\n";
-      foreach($missing as $m){
-        $output .= "<li class='text-white'>{$label[$m]}\n";
-      }
-      $output .= "</ul></div>\n";
+  		foreach($missing as $m){
+  			$output .= "<li class='text-white'>{$label[$m]}\n";
+  		}
+  		$output .= "</ul></div>\n";
   	}
   }
 
@@ -221,13 +223,13 @@ echo "$component_HTMLHeader";
   It takes up 4 columns of a 12-column grid on large screens, 6 on a medium screen, and all 12 on a small screen.
   -->
     <form class="container col-lg-6 col-md-8 col-sm-12 my-3 px-5 pt-5 bg-light bg-gradient rounded" method="POST" action="">
-      <h1 class="text-center text-black">Let's Talk.</h1>
-      <p class="lead text-center text-black">Send us a message with the form below and we'll get back to you ASAP.</h5>
+      <h1 class="text-center text-black">Considering sponsorship?</h1>
+      <p class="lead text-center text-black">Fill out the form below and help us propel underprivileged DFW youth toward success.</p>
       <div class="mb-3">
         <p class="text-black">* Required field</p>
 
-        <label for="contactEmail" class="form-label text-black">* Email address</label>
-        <input type="email" name="contactEmail" class="form-control" id="contact-input-Email" aria-describedby="emailHelp">
+        <label for="sponsorEmail" class="form-label text-black">* Email address</label>
+        <input type="email" name="sponsorEmail" class="form-control" id="sponsor-input-Email" aria-describedby="emailHelp">
         <!-- * we don't need this part right now, but leaving the code here as an example of the form-text class*
         <div id="emailHelp" class="form-text">We'll never share your email with anyone else.</div>
         -->
@@ -235,20 +237,20 @@ echo "$component_HTMLHeader";
 
       <!-- Get user's first name -->
       <div class="mb-3">
-        <label for="contactFirstName" class="form-label text-black">* First Name</label>
-        <input type="name" name="contactFirstName" class="form-control" id="contact-input-FirstName">
+        <label for="sponsorFirstName" class="form-label text-black">* First Name</label>
+        <input type="name" name="sponsorFirstName" class="form-control" id="sponsor-input-FirstName">
       </div>
 
       <!-- Get user's last name -->
       <div class="mb-3">
-        <label for="contactLastName" class="form-label text-black">* Last Name</label>
-        <input type="name" name="contactLastName" class="form-control" id="contact-input-LastName">
+        <label for="sponsorLastName" class="form-label text-black">* Last Name</label>
+        <input type="name" name="sponsorLastName" class="form-control" id="sponsor-input-LastName">
       </div>
 
       <!-- Get user's phone number -->
       <div class="mb-3">
-        <label for="contactPhoneNumber" class="form-label text-black">Phone Number</label>
-        <input type="name" name="contactPhoneNumber" class="form-control" id="contact-input-PhoneNumber" placeholder="123-456-7890">
+        <label for="sponsorPhoneNumber" class="form-label text-black">Phone Number</label>
+        <input type="name" name="sponsorPhoneNumber" class="form-control" id="sponsor-input-PhoneNumber" placeholder="123-456-7890">
       </div>
       <!-- dropdown menu for "I am interested in.."
 
@@ -266,20 +268,12 @@ echo "$component_HTMLHeader";
       -->
       <!--Optional message from user -->
       <div class="input-group">
-        <span class="input-group-text">Message</span>
-        <label for="contactMessage" class="form-label text-black"></label>
-        <textarea class="form-control" name="contactMessage" aria-label="With textarea" id="contact-input-textArea"></textarea>
+        <span class="input-group-text">What is the best way to contact you?</span>
+        <label for="sponsorMessage" class="form-label text-black"></label>
+        <textarea class="form-control" name="sponsorMessage" aria-label="With textarea" id="sponsor-input-textArea"></textarea>
       </div>
-      <!--Checkbox input
-      ***Commenting this part out for now, don't think it's necessary.
 
-      <div class="mb-3 form-check">
-        <input type="checkbox" name="contactOptIn" class="form-check-input" id="contact-input-OptIn">
-        <label class="form-check-label text-black" for="exampleCheck1">I'd like to receive occasional updates and announcements from The G.U.L.F.</label>
-      </div>
-      -->
-      <!--submit form -->
-      <button type="submit" name="Submit" class="btn btn-primary my-3">Submit</button>
+      <button type="submit" name="SubmitSponsorForm" class="btn btn-primary my-3">Submit</button>
     </form>
 
 </div>
